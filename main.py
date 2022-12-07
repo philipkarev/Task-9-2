@@ -2,7 +2,7 @@ from tkinter import *
 
 max_X = 1200  # ширина окна (количество точек по горизонтали)
 max_Y = 800  # высота окна
-e_x = 6.0  # количество единичных отрезков по полож. части оси х в преобразованной системе координат
+e_x = 11.0  # количество единичных отрезков по полож. части оси х в преобразованной системе координат
 e_y = e_x * max_Y / max_X  # кол-во единичных отр. по полож. части оси у из условия их рав-вва по длине
 
 
@@ -55,38 +55,52 @@ def define_array(SInputFile):  # заполнение массива точка�
                 print("a2[i] =", a2[i], " == a2[j] =", a2[j])
                 print("Error: detected intersection of points.")
                 return -1
-     
+
     return a1, a2
+
+arch = []
+arch2 = []
 
 def isConvex(array):  # проверка на выпуклость
 
     isc = 1
-
-    # if (len(array)) == 3:
-    #     return 1  # triangle always is convex
+    isPB = 0
 
     for i in range(len(array) - 1):  # ур-ие прямой через данные две точки
         a = array[i + 1][1] - array[i][1]
         b = array[i][0] - array[i + 1][0]
         c = array[i][0] * (array[i][1] - array[i + 1][1]) + \
             array[i][1] * (array[i + 1][0] - array[i][0])
-        #ур-ие ищу в виде: a * x + b * y + c = 0
+
+        # ур-ие ищу в виде: a * x + b * y + c = 0
 
         # print("\n i =", i)
         # print("\nLine:", a, "* x +", b, "* y +", c, "= 0")
 
         for j in range(len(array) - 1):
             if j != i and j + 1 != i and j != i + 1:  # точки, по к-рым составл.ур-ие
+
+                if sign(a * array[j][0] + b * array[j][1] + c) == 0:
+                    print("Point", array[j][0], array[j][1], "belongs line.")
+                    arch.append(array[j][0])
+                    arch.append(array[j][1])
+                    isPB = 1
+
                 if sign(a * array[j][0] + b * array[j][1] + c) != \
                         sign(a * array[j + 1][0] + b * array[j + 1][1] + c):
                     # print("@@ j =", j)
-                    # print("points for line: i =", i, "i + 1 =", i + 1)
-                    # print("a * array[j][0] + b * array[j][1] + c =",
-                    #       a * array[j][0] + b * array[j][1] + c)
-                    # print("a * array[j + 1][0] + b * array[j + 1][1] + c =",
-                    #       a * array[j + 1][0] + b * array[j + 1][1] + c)
+                    print("points for line: i =", i, "i + 1 =", i + 1)
+                    print("line:", a, " * x + ", b, " * y + ", c, "= 0")
+                    print("for j: ",
+                          a * array[j][0] + b * array[j][1] + c)
+                    print("for j + 1:",
+                          a * array[j + 1][0] + b * array[j + 1][1] + c)
 
                     isc = 0  # it's not a convex polygon
+
+        # if sign(a * array[len(array) - 1][0] + b * array[len(array) - 1][1] + c) == 0:
+            # print("Point", array[j][0], array[j][1], "belongs line.")
+            # isPB = 1
 
     a = array[len(array) - 1][1] - array[0][1]  # построим прямую по 1-ой и посл. точкам
     b = array[0][0] - array[len(array) - 1][0]
@@ -95,22 +109,37 @@ def isConvex(array):  # проверка на выпуклость
 
     for j in range(len(array) - 1):
         if j != 0 and j != len(array) - 1 and j + 1 != len(array) - 1:  # точки, по к-рым составл.ур-ие
+
+            if sign(a * array[j][0] + b * array[j][1] + c) == 0:
+                arch.append(array[j][0])
+                arch.append(array[j][1])
+                isPB = 1
+
             if sign(a * array[j][0] + b * array[j][1] + c) != \
                     sign(a * array[j + 1][0] + b * array[j + 1][1] + c):
                 # print("@@ j =", j)
-                # print("points for line: i =", i, "i + 1 =", i + 1)
-                # print("a * array[j][0] + b * array[j][1] + c =",
-                #       a * array[j][0] + b * array[j][1] + c)
-                # print("a * array[j + 1][0] + b * array[j + 1][1] + c =",
-                #       a * array[j + 1][0] + b * array[j + 1][1] + c)
+                print("points for line: i =", i, "i + 1 =", i + 1)
+                print("line:", a, " * x + ", b, " * y + ", c, "= 0")
+                print("for j:",
+                      a * array[j][0] + b * array[j][1] + c)
+                print("for j + 1: ",
+                      a * array[j + 1][0] + b * array[j + 1][1] + c)
 
                 isc = 0  # it's not a convex polygon
 
-    if isc == 0:
+    # if sign(a * array[len(array) - 1][0] + b * array[len(array) - 1][1] + c) == 0:
+    #     print("Point", array[j][0], array[j][1], "belongs line.")
+    #     isPB = 1
+
+    if isc == 0 or (isPB == 1 and isc == 1):
+        print("\nisPB = ",isPB," isc = ",isc)
+        if isPB == 1:
+            print("Point belongs line.\n")
+        # print("return 0")  # ????
         return 0
+
     elif isc == 1:
         return 1  # it's convex polygon
-
 
 def draw(p):  # рисуем точки из списка
 
@@ -118,8 +147,13 @@ def draw(p):  # рисуем точки из списка
         u.draw_circle()
 
 
-def paint(a):
+def draw2(p):  # рисуем точки из списка
 
+    for u in p:
+        u.draw_circle2()
+
+
+def paint(a):
     class Point:  # точка плоскости с целыми координатами (в исходной системе координат)
         def __init__(self, a, b):  # конструктор класса
             self.x = a
@@ -131,6 +165,11 @@ def paint(a):
         def draw_circle(self, radius=0.03, color='black'):  # рисование окружности на холсте
             r = RPoint(radius, radius)  # овал вписан в прямоугольник, выч. его границ
             c.create_oval((self - r).x, (self - r).y, (self + r).x, (self + r).y, fill=color)  # исп. -
+        def draw_circle2(self, radius=0.05, color='green'):  # рисование окружности на холсте
+            r = RPoint(radius, radius)  # овал вписан в прямоугольник, выч. его границ
+            c.create_oval((self - r).x, (self - r).y, (self + r).x, (self + r).y, fill=color)
+
+
 
     class RPoint(Point):  # дочерний класс  точка с вещест. координатами для реальной работы
         def __init__(self, a, b):
@@ -164,15 +203,22 @@ def paint(a):
 
     polygon = []  # список точек
 
-    for i in range(len(a) - 1):
-        polygon.append((RPoint(a[i], a[i+1])))
-
+    for i in range(0, len(a) - 1, 2):
+        polygon.append((RPoint(a[i], a[i + 1])))
+    # print(a)  # (polygon)
     # print("len(polygon) =", len(polygon))
 
     draw(polygon)
 
+    # print("arch2 = ", arch2)
+
+    for i in range(0, len(arch) - 1, 2):
+        arch2.append((RPoint(arch[i], arch[i + 1])))
+
+
     def draw_path(event):  # обработчик события
         b = 0
+        # print('len(polygon)=', len(polygon))
         for u in polygon:  # для каждой точки списка
             if b > 0:
                 u.draw_line(v, 'red')  # соединяем красной линией 2 соседние точки
@@ -182,28 +228,29 @@ def paint(a):
 
     c.bind('<Right>', draw_path)  # к клавише стрелочка направо привязываем действие
 
+    draw2(arch2)
+
     root.mainloop()  # бесконечный цикл
 
-def paint1(a):
 
-    window = Tk()
-    window.title('draw a polygon')
-
-    canvas = Canvas(window, width = 1200, height = 800, bg = "gray",
-                    cursor = "pencil")
-
-    for i in range(len(a) - 1):
-        canvas.create_line(a[i][0] * 50, a[i][1] * 50, a[i + 1][0] * 50,
-                           a[i + 1][1] * 50, width = 3, fill = "yellow")
-    canvas.create_line(a[0][0] * 50, a[0][1] * 50, a[len(a) - 1][0] * 50,
-                       a[len(a) - 1][1] * 50, width = 3, fill = "yellow")
-
-    canvas.pack()
-    window.mainloop()
+# def paint1(a):
+#     window = Tk()
+#     window.title('draw a polygon')
+#
+#     canvas = Canvas(window, width=1200, height=800, bg="gray",
+#                     cursor="pencil")
+#
+#     for i in range(len(a) - 1):
+#         canvas.create_line(a[i][0] * 50, a[i][1] * 50, a[i + 1][0] * 50,
+#                            a[i + 1][1] * 50, width=3, fill="yellow")
+#     canvas.create_line(a[0][0] * 50, a[0][1] * 50, a[len(a) - 1][0] * 50,
+#                        a[len(a) - 1][1] * 50, width=3, fill="yellow")
+#
+#     canvas.pack()
+#     window.mainloop()
 
 
 def sign(x):
-
     if x > 0:
         return 1
     elif x < 0:
@@ -213,7 +260,6 @@ def sign(x):
 
 
 def main():
-
     [ar, a] = define_array("1.txt")
 
     # print("a =", a)
@@ -221,8 +267,10 @@ def main():
     if not isinstance(a, int):
         if isConvex(a) == 1:
             print("It's a convex polygon.")
+            # print("\n\n\n arch =  ", arch, "\n\n\n")
         elif isConvex(a) == 0:
             print("It isn't a convex polygon.")
+            # print("\n\n\n arch =  ", arch, "\n\n\n")
         paint(ar)
 
     return 0
